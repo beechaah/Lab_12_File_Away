@@ -1,53 +1,72 @@
 import javax.swing.*;
 import java.io.*;
-import java.util.Scanner;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import static java.nio.file.StandardOpenOption.CREATE;
 
 public class FileInspector
 {
     public static void main(String[] args)
     {
-        JFileChooser fileChooser = new JFileChooser(new File("src"));
-        int result = fileChooser.showOpenDialog(null);
+        JFileChooser chooser = new JFileChooser();
+        File selectedFile;
+        String rec = "";
+        String fileName = "";
+        int line = 0;
+        int charCnt = 0;
+        int wordCnt = 0;
+        String[] words;
 
-        if (result == JFileChooser.APPROVE_OPTION)
+        try
         {
-            File selectedFile = fileChooser.getSelectedFile();
-            processFile(selectedFile);
-        }
-        else
-        {
-            System.out.println("No file selected.");
-        }
-    }
+            File workingDirectory = new File(System.getProperty("user.dir"));
 
-    private static void processFile(File file)
-    {
-        int lineCount = 0;
-        int wordCount = 0;
-        int charCount = 0;
+            chooser.setCurrentDirectory(workingDirectory);
 
-        try (Scanner scanner = new Scanner(file))
-        {
-            while (scanner.hasNextLine())
+            if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
             {
-                String line = scanner.nextLine();
-                System.out.println(line);
+                selectedFile = chooser.getSelectedFile();
+                Path file = selectedFile.toPath();
 
-                lineCount++;
-                wordCount += line.split("\\s+").length;
-                charCount += line.length();
+                InputStream in =
+                        new BufferedInputStream(Files.newInputStream(file, CREATE));
+                BufferedReader reader =
+                        new BufferedReader(new InputStreamReader(in));
+
+                while (reader.ready())
+                {
+                    rec = reader.readLine();
+                    line++;
+                    charCnt += rec.length();
+                    words = rec.split(" ");
+                    wordCnt += words.length;
+
+                    // echo to screen
+                    System.out.printf("\nLine %4d %-60s ", line, rec);
+                }
+                reader.close();
+                System.out.println("\n\nData file read!");
+
+                System.out.println("The filename is " + selectedFile.getName());
+                System.out.println("The total number of lines is " + line);
+                System.out.println("The total number of words is " + wordCnt);
+                System.out.println("The total number of characters is " + charCnt);
             }
-
-            System.out.println("\nSummary Report:");
-            System.out.println("File Name: " + file.getName());
-            System.out.println("Number of Lines: " + lineCount);
-            System.out.println("Number of Words: " + wordCount);
-            System.out.println("Number of Characters: " + charCount);
-
+            else
+            {
+                System.out.println("No file selected!!! ... exiting.\nRun the program again and select a file.");
+            }
         }
         catch (FileNotFoundException e)
         {
-            System.out.println("File not found: " + file.getAbsolutePath());
+            System.out.println("File not found!!!");
+            e.printStackTrace();
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
         }
     }
+
 }

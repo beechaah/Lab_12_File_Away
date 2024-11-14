@@ -1,48 +1,66 @@
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Scanner;
+
+import static java.nio.file.StandardOpenOption.CREATE;
 
 public class DataSaver
 {
     public static void main(String[] args)
     {
-        ArrayList<String> records = new ArrayList<>();
-        boolean moreRecords = true;
-        int idCounter = 1;
-        int yearOfBirth = 0;
+        ArrayList <String>recs = new ArrayList<>();
+        Scanner in = new Scanner(System.in);
+        String csvRec = "";
+        boolean done = false;
+        String firstName = "";
+        String lastName = "";
+        String idNum = "";
+        String email = "";
+        int yob = 0;
 
-        while (moreRecords)
+        do
         {
-            String firstName = "Enter first name: ";
-            String lastName = "Enter last name: ";
-            String idNumber = String.format("%06d", idCounter++);
-            String email = "Enter email: ";
-            String YOB = "Enter your year of birth: ";
+            firstName = SafeInput.getNonZeroLenString(in, "Enter your First Name: ");
+            lastName = SafeInput.getNonZeroLenString(in, "Enter your Last Name: ");
+            idNum = SafeInput.getRegExString(in, "Enter your ID Number: ", "^\\d{6}$");
+            email = SafeInput.getRegExString(in, "Enter your Email Address: ", ".*@.*");
+            yob = SafeInput.getRangedInt(in, "Enter your Year of Birth: ",1000, 9999);
 
-            String record = String.join(", ", firstName, lastName, idNumber, email, String.valueOf(yearOfBirth));
-            records.add(record);
+            csvRec = firstName + ", " + lastName + ", " + idNum + ", " + email + ", " + yob;
 
-            String more = "Do you want to add another record? (yes/no): ";
-            moreRecords = more.equalsIgnoreCase("yes");
+            recs.add(csvRec);
+
+            done = SafeInput.getYNConfirm(in, "Are you done?");
+        }while(!done);
+        
+
+        File workingDirectory = new File(System.getProperty("user.dir"));
+        Path file = Paths.get(workingDirectory.getPath() + "\\src\\data.txt");
+
+        try
+        {
+            OutputStream out =
+                    new BufferedOutputStream(Files.newOutputStream(file, CREATE));
+            BufferedWriter writer =
+                    new BufferedWriter(new OutputStreamWriter(out));
+
+            for(String rec : recs)
+            {
+                writer.write(rec, 0, rec.length());
+                writer.newLine();
+
+            }
+            writer.close();
+            System.out.println("Data file written!");
+        }
+        catch (IOException e)
+        {
+            e.printStackTrace();
         }
 
-        String fileName = "Enter the file name to save (with .csv extension): ";
-        saveToFile(records, fileName);
     }
 
-        private static void saveToFile(ArrayList<String> records, String fileName)
-        {
-            try (FileWriter writer = new FileWriter("src/" + fileName))
-            {
-                for (String record : records)
-                {
-                    writer.write(record + "\n");
-                }
-                System.out.println("Data saved to " + fileName);
-            }
-            catch (IOException e)
-            {
-                System.out.println("An error occurred while saving the file: " + e.getMessage());
-            }
-        }
-    }
+}
