@@ -17,7 +17,7 @@ public class DataSaver
             String lastName = "Enter last name: ";
             String idNumber = String.format("%06d", idCounter++);
             String email = "Enter email: ";
-            System.out.println("Enter your year of birth: ");
+            String YOB = "Enter your year of birth: ";
 
             String record = String.join(", ", firstName, lastName, idNumber, email, String.valueOf(yearOfBirth));
             records.add(record);
